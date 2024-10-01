@@ -77,7 +77,7 @@ app.post('/api/tickets-per-process', async (req, res) => {
         INNER JOIN 
             ctg_tramites ON ticket.id_tipoTramite = ctg_tramites.id_tipoTramite
         WHERE 
-            ticket.id_tipoTramite = 1
+            ticket.id_tipoTramite = ?
         ORDER BY 
             ticket.createdAt ASC;
         `;
