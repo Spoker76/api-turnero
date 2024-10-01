@@ -61,10 +61,25 @@ app.post('/api/tickets-per-process', async (req, res) => {
         const connection = await mysql.createConnection(dbConfig);
 
         const query = `
-            SELECT id_ticket, codigo, nombre, documento, id_prioridad, id_tipoTramite, createdAt
-            FROM ticket 
-            WHERE id_tipoTramite = ?
-            ORDER BY createdAt ASC;
+            SELECT 
+            id_ticket, 
+            codigo, 
+            nombre, 
+            documento,
+            ticket.id_prioridad,
+            ctg_prioridades.prioridad, 
+            ctg_tramites.tipoTramite, 
+            createdAt
+        FROM 
+            ticket
+        INNER JOIN 
+            ctg_prioridades ON ticket.id_prioridad = ctg_prioridades.id_prioridad
+        INNER JOIN 
+            ctg_tramites ON ticket.id_tipoTramite = ctg_tramites.id_tipoTramite
+        WHERE 
+            ticket.id_tipoTramite = 1
+        ORDER BY 
+            ticket.createdAt ASC;
         `;
 
         const [result] = await connection.execute(query, [tramite]);
