@@ -35,6 +35,25 @@ app.post('/api/tickets', async (req, res) => {
     }
 });
 
+app.get('/api/last-ticket', async (req, res) => {
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        const query = `
+            SELECT codigo FROM ticket WHERE id_estado = 1 AND DATE(createdAt) = CURDATE() ORDER BY createdAt DESC LIMIT 1;
+        `;
+
+        const [result] = await connection.execute(query);
+
+        await connection.end();
+
+        res.status(201).send({ message: 'INFO:: Ultimo ticket obtenido con éxito', result });
+    } catch (error) {
+        console.error('ERROR:: Error al obtener el ultimo ticket:', error);
+        res.status(500).send('Error al obtener el codigo del último ticket!');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`INFO:: Servidor corriendo en el puerto --- ${PORT}`);
