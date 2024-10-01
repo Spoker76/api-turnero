@@ -90,7 +90,7 @@ app.post('/api/tickets-per-process', async (req, res) => {
             orderedTickets = [...orderedTickets, ...otherPriorityTickets.slice(otherPriorityIndex)];
         }
 
-        res.status(201).send({ message: 'INFO:: Tickets obtenidos', result: orderedTickets });
+        res.status(201).send({ message: 'INFO:: Tickets obtenidos', result: orderedTickets[0] });
     } catch (error) {
         console.error('ERROR:: Error al obtener los tickets:', error);
         res.status(500).send('Error al obtener los tickets!');
