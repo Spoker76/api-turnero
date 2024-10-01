@@ -112,6 +112,33 @@ app.post('/api/tickets-per-process', async (req, res) => {
     }
 });
 
+app.put('/api/tickets', async (req, res) => {
+    const { id, state } = req.body;
+
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        const query = `
+            UPDATE ticket 
+            SET id_estado = ?
+            WHERE id_ticket = ?
+        `;
+
+        const [result] = await connection.execute(query, [state, id]);
+
+        await connection.end();
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ message: 'No se encontró ningún ticket con el id proporcionado' });
+        }
+
+        res.status(200).send({ message: 'INFO:: Ticket actualizado con éxito' });
+    } catch (error) {
+        console.error('ERROR:: Error al actualizar el ticket:', error);
+        res.status(500).send('Error al actualizar el ticket!');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`INFO:: Servidor corriendo en el puerto --- ${PORT}`);
