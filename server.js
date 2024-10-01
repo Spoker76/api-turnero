@@ -54,6 +54,49 @@ app.get('/api/last-ticket', async (req, res) => {
     }
 });
 
+app.post('/api/tickets-per-process', async (req, res) => {
+    const { tramite } = req.body;
+
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+
+        const query = `
+            SELECT id_ticket, codigo, nombre, documento, id_prioridad, id_tipoTramite, createdAt
+            FROM ticket 
+            WHERE id_tipoTramite = ?
+            ORDER BY createdAt ASC;
+        `;
+
+        const [result] = await connection.execute(query, [tramite]);
+
+        await connection.end();
+
+        const priority1Tickets = result.filter(ticket => ticket.id_prioridad === 1);
+        const otherPriorityTickets = result.filter(ticket => ticket.id_prioridad !== 1);
+
+        let orderedTickets = [];
+        let otherPriorityIndex = 0;
+
+        for (let i = 0; i < priority1Tickets.length; i++) {
+            orderedTickets.push(priority1Tickets[i]);
+
+            if ((i + 1) % 3 === 0 && otherPriorityIndex < otherPriorityTickets.length) {
+                orderedTickets.push(otherPriorityTickets[otherPriorityIndex]);
+                otherPriorityIndex++;
+            }
+        }
+
+        if (otherPriorityIndex < otherPriorityTickets.length) {
+            orderedTickets = [...orderedTickets, ...otherPriorityTickets.slice(otherPriorityIndex)];
+        }
+
+        res.status(201).send({ message: 'INFO:: Tickets obtenidos', result: orderedTickets });
+    } catch (error) {
+        console.error('ERROR:: Error al obtener los tickets:', error);
+        res.status(500).send('Error al obtener los tickets!');
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`INFO:: Servidor corriendo en el puerto --- ${PORT}`);
