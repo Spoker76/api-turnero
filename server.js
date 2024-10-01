@@ -91,6 +91,8 @@ app.post('/api/tickets-per-process', async (req, res) => {
         const priority1Tickets = result.filter(ticket => ticket.id_prioridad === 1);
         const otherPriorityTickets = result.filter(ticket => ticket.id_prioridad !== 1);
 
+        otherPriorityTickets.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
         let orderedTickets = [];
         let otherPriorityIndex = 0;
 
@@ -107,7 +109,7 @@ app.post('/api/tickets-per-process', async (req, res) => {
             orderedTickets = [...orderedTickets, ...otherPriorityTickets.slice(otherPriorityIndex)];
         }
 
-        res.status(201).send({ message: 'INFO:: Ticket enviado', result: orderedTickets[0] });
+        res.status(201).send({ message: 'INFO:: Ticket enviado', result: orderedTickets });
     } catch (error) {
         console.error('ERROR:: Error al enviar el ticket:', error);
         res.status(500).send('Error al enviar el ticket!');
