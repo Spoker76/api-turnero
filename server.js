@@ -79,7 +79,7 @@ app.post('/api/tickets-per-process', async (req, res) => {
         WHERE 
             ticket.id_tipoTramite = ?
         AND
-            ticket.estado = 1
+            ticket.id_estado = 1
         ORDER BY 
             ticket.createdAt ASC;
         `;
