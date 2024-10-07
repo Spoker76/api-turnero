@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const moment = require('moment-timezone');
 const app = express();
 
 app.use(express.json());
@@ -10,8 +11,7 @@ const dbConfig = {
     host: 'bvh0w4w4ogz2mcqxgnae-mysql.services.clever-cloud.com',
     user: 'u8fvjqfnoqh44je4',
     password: '2o0LQ9IYnJL0PS2DkLck',
-    database: 'bvh0w4w4ogz2mcqxgnae',
-    timezone: 'America/Honduras'
+    database: 'bvh0w4w4ogz2mcqxgnae'
 };
 
 app.post('/api/tickets', async (req, res) => {
@@ -20,12 +20,14 @@ app.post('/api/tickets', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbConfig);
 
+        const createdAt = moment().tz('America/Tegucigalpa').format('YYYY-MM-DD HH:mm:ss');
+
         const query = `
-            INSERT INTO ticket (codigo, nombre, documento, id_tipoTramite, id_prioridad, id_estado)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO ticket (codigo, nombre, documento, createdAt, id_tipoTramite, id_prioridad, id_estado)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
 
-        const [result] = await connection.execute(query, [codigo, nombre, documento, id_tipoTramite, id_prioridad, id_estado]);
+        const [result] = await connection.execute(query, [codigo, nombre, documento, createdAt, id_tipoTramite, id_prioridad, id_estado]);
 
         await connection.end();
 
