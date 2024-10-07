@@ -10,7 +10,8 @@ const dbConfig = {
     host: 'bvh0w4w4ogz2mcqxgnae-mysql.services.clever-cloud.com',
     user: 'u8fvjqfnoqh44je4',
     password: '2o0LQ9IYnJL0PS2DkLck',
-    database: 'bvh0w4w4ogz2mcqxgnae'
+    database: 'bvh0w4w4ogz2mcqxgnae',
+    timezone: 'America/Honduras'
 };
 
 app.post('/api/tickets', async (req, res) => {
