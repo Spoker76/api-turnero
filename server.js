@@ -117,18 +117,18 @@ app.post('/api/tickets-per-process', async (req, res) => {
 });
 
 app.put('/api/tickets', async (req, res) => {
-    const { id, state } = req.body;
+    const { id, state, asignado } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
 
         const query = `
             UPDATE ticket 
-            SET id_estado = ?
+            SET id_estado = ?, asignado = ?
             WHERE id_ticket = ?
         `;
 
-        const [result] = await connection.execute(query, [state, id]);
+        const [result] = await connection.execute(query, [state, asignado, id]);
 
         await connection.end();
 
