@@ -59,12 +59,10 @@ const reorderTicketQueue = () => {
 };
 
 app.post('/api/tickets', async (req, res) => {
-    const { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado } = req.body;
+    const { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado, createdAt } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
-
-        const createdAt = moment().tz('America/Tegucigalpa').format('YYYY-MM-DD HH:mm:ss');
 
         const query = `
             INSERT INTO ticket (codigo, nombre, documento, createdAt, id_tipoTramite, id_prioridad, id_estado)
