@@ -14,21 +14,28 @@ const dbConfig = {
     database: 'bvh0w4w4ogz2mcqxgnae'
 };
 
-// Cola de tickets en tiempo real
 let ticketQueue = [];
 
-// Función para limpiar los tickets que no son del día actual
 const cleanUpOldTickets = () => {
     const today = moment().tz('America/Tegucigalpa').format('YYYY-MM-DD');
     ticketQueue = ticketQueue.filter(ticket => moment(ticket.createdAt).format('YYYY-MM-DD') === today);
 };
 
-// Función para agregar un ticket a la cola y ordenar según las prioridades
-const addTicketToQueue = (ticket) => {
-    ticketQueue.push(ticket);
-    ticketQueue.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+const insertTicketInOrder = (newTicket) => {
+    let inserted = false;
+    for (let i = 0; i < ticketQueue.length; i++) {
+        if (new Date(newTicket.createdAt) < new Date(ticketQueue[i].createdAt)) {
+            ticketQueue.splice(i, 0, newTicket);
+            inserted = true;
+            break;
+        }
+    }
+    if (!inserted) {
+        ticketQueue.push(newTicket);
+    }
+};
 
-    // Aplicar la regla de priorización: 3 de prioridad normal y 1 de otra prioridad
+const reorderTicketQueue = () => {
     const priority1Tickets = ticketQueue.filter(t => t.id_prioridad === 1);
     const otherPriorityTickets = ticketQueue.filter(t => t.id_prioridad !== 1);
     
@@ -51,7 +58,6 @@ const addTicketToQueue = (ticket) => {
     ticketQueue = orderedTickets;
 };
 
-// Endpoint para crear tickets y actualizar la cola
 app.post('/api/tickets', async (req, res) => {
     const { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado } = req.body;
 
@@ -80,9 +86,9 @@ app.post('/api/tickets', async (req, res) => {
             id_estado
         };
 
-        // Limpiar y actualizar la cola de tickets
         cleanUpOldTickets();
-        addTicketToQueue(newTicket);
+        insertTicketInOrder(newTicket);
+        reorderTicketQueue();
 
         res.status(201).send({ message: 'INFO:: Ticket creado', id_ticket: result.insertId });
     } catch (error) {
@@ -91,7 +97,6 @@ app.post('/api/tickets', async (req, res) => {
     }
 });
 
-// Endpoint para obtener el último ticket
 app.get('/api/last-ticket', async (req, res) => {
     try {
         const connection = await mysql.createConnection(dbConfig);
@@ -111,7 +116,6 @@ app.get('/api/last-ticket', async (req, res) => {
     }
 });
 
-// Endpoint para obtener tickets por proceso (con uniones para obtener los campos relacionados)
 app.post('/api/tickets-per-process', async (req, res) => {
     const { tramite } = req.body;
 
@@ -155,7 +159,6 @@ app.post('/api/tickets-per-process', async (req, res) => {
     }
 });
 
-// Endpoint para actualizar el estado del ticket
 app.put('/api/tickets', async (req, res) => {
     const { id, state, asignado } = req.body;
 
@@ -176,7 +179,6 @@ app.put('/api/tickets', async (req, res) => {
             return res.status(404).send({ message: 'No se encontró ningún ticket con el id proporcionado' });
         }
 
-        // Actualizar el ticket en la cola en tiempo real
         ticketQueue = ticketQueue.map(ticket => {
             if (ticket.id_ticket === id) {
                 return { ...ticket, id_estado: state, asignado };
