@@ -111,16 +111,44 @@ app.get('/api/last-ticket', async (req, res) => {
     }
 });
 
-// Endpoint para obtener tickets por proceso (utiliza la cola en tiempo real)
-app.post('/api/tickets-per-process', (req, res) => {
+// Endpoint para obtener tickets por proceso (con uniones para obtener los campos relacionados)
+app.post('/api/tickets-per-process', async (req, res) => {
     const { tramite } = req.body;
 
     try {
-        const filteredTickets = ticketQueue.filter(ticket => ticket.id_tipoTramite === tramite && ticket.id_estado === 1);
+        const connection = await mysql.createConnection(dbConfig);
 
-        console.log(filteredTickets);
+        const query = `
+            SELECT 
+                t.id_ticket, 
+                t.codigo, 
+                t.nombre, 
+                t.documento, 
+                t.createdAt, 
+                p.prioridad, 
+                e.estado, 
+                tt.tipoTramite 
+            FROM 
+                ticket t
+            INNER JOIN 
+                ctg_prioridades p ON t.id_prioridad = p.id_prioridad
+            INNER JOIN 
+                ctg_estado e ON t.id_estado = e.id_estado
+            INNER JOIN 
+                ctg_tramites tt ON t.id_tipoTramite = tt.id_tipoTramite
+            WHERE 
+                t.id_tipoTramite = ?
+            AND 
+                t.id_estado = 1
+            ORDER BY 
+                t.createdAt ASC
+        `;
 
-        res.status(201).send({ message: 'INFO:: Tickets enviados', result: filteredTickets });
+        const [rows] = await connection.execute(query, [tramite]);
+
+        await connection.end();
+
+        res.status(201).send({ message: 'INFO:: Tickets enviados', result: rows });
     } catch (error) {
         console.error('ERROR:: Error al enviar los tickets:', error);
         res.status(500).send('Error al enviar los tickets!');
