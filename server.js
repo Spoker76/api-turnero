@@ -102,7 +102,7 @@ app.get('/api/last-ticket', async (req, res) => {
         const connection = await mysql.createConnection(dbConfig);
 
         const query = `
-            SELECT codigo FROM ticket WHERE id_estado = 1 AND DATE(createdAt) = CURDATE() ORDER BY createdAt DESC LIMIT 1;
+            SELECT codigo FROM ticket WHERE DATE(createdAt) = CURDATE() ORDER BY createdAt DESC LIMIT 1;
         `;
 
         const [result] = await connection.execute(query);
