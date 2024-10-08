@@ -117,6 +117,9 @@ app.post('/api/tickets-per-process', (req, res) => {
 
     try {
         const filteredTickets = ticketQueue.filter(ticket => ticket.id_tipoTramite === tramite && ticket.id_estado === 1);
+
+        console.log(filteredTickets);
+
         res.status(201).send({ message: 'INFO:: Tickets enviados', result: filteredTickets });
     } catch (error) {
         console.error('ERROR:: Error al enviar los tickets:', error);
