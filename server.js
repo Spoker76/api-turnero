@@ -7,11 +7,23 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+function formatDateToMySQL(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 const dbConfig = {
-    host: 'bvh0w4w4ogz2mcqxgnae-mysql.services.clever-cloud.com',
-    user: 'u8fvjqfnoqh44je4',
-    password: '2o0LQ9IYnJL0PS2DkLck',
-    database: 'bvh0w4w4ogz2mcqxgnae'
+    host: 'localhost',
+    port: '3306',
+    user: 'root',
+    password: 'password',
+    database: 'BDTurnero'
 };
 
 let ticketQueue = [];
@@ -59,10 +71,13 @@ const reorderTicketQueue = () => {
 };
 
 app.post('/api/tickets', async (req, res) => {
-    const { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado, createdAt } = req.body;
+    let { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado, createdAt } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
+
+        // Convierte la fecha a formato MySQL
+        createdAt = formatDateToMySQL(createdAt);
 
         const query = `
             INSERT INTO ticket (codigo, nombre, documento, createdAt, id_tipoTramite, id_prioridad, id_estado)
@@ -97,13 +112,23 @@ app.post('/api/tickets', async (req, res) => {
 
 app.get('/api/last-ticket', async (req, res) => {
     try {
+        const { fecha } = req.query;
+        if (!fecha) {
+            return res.status(400).send('ERROR:: Se requiere una fecha válida');
+        }
+
+        const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
+        if (!regexFecha.test(fecha)) {
+            return res.status(400).send('ERROR:: Formato de fecha no válido. Utiliza YYYY-MM-DD.');
+        }
+
         const connection = await mysql.createConnection(dbConfig);
 
         const query = `
-            SELECT codigo FROM ticket WHERE DATE(createdAt) = CURDATE() ORDER BY createdAt DESC LIMIT 1;
+            SELECT codigo FROM ticket WHERE DATE(createdAt) = ? ORDER BY createdAt DESC LIMIT 1;
         `;
 
-        const [result] = await connection.execute(query);
+        const [result] = await connection.execute(query, [fecha]);
 
         await connection.end();
 
