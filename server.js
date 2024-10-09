@@ -202,7 +202,7 @@ app.put('/api/tickets', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-const HOST = '10.10.0.65';
+const HOST = 'localhost';
 
 app.listen(PORT, HOST, () => {
     console.log(`INFO:: Servidor corriendo en http://${HOST}:${PORT}`);
