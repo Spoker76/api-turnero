@@ -36,11 +36,11 @@ function formatDateToMySQL(date) {
 }
 
 const dbConfig = {
-    host: 'db4free.net',
+    host: 'bvh0w4w4ogz2mcqxgnae-mysql.services.clever-cloud.com',
     port: '3306',
-    user: 'adminturnerodb',
-    password: 'adminturnerodb',
-    database: 'dbturnerotbox'
+    user: 'u8fvjqfnoqh44je4',
+    password: '2o0LQ9IYnJL0PS2DkLck',
+    database: 'bvh0w4w4ogz2mcqxgnae'
 };
 
 let ticketQueue = [];
