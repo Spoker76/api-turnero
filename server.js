@@ -2,11 +2,32 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const moment = require('moment-timezone');
+const fs = require('fs');
+const https = require('https');
 const app = express();
 
 app.use(express.json());
-app.use(cors());
 
+app.use(cors({
+    origin: '*', // Permite cualquier origen
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Access-Control-Allow-Private-Network'],
+    preflightContinue: true
+}));
+
+// Agregar manualmente la cabecera Access-Control-Allow-Private-Network en la respuesta de preflight
+app.options('*', (req, res) => {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');  // Habilitar acceso a redes privadas
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Permite cualquier origen
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(204); // Responder con el código 204 No Content
+});
+
+// Función para formatear fecha en formato MySQL
 function formatDateToMySQL(date) {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -28,11 +49,13 @@ const dbConfig = {
 
 let ticketQueue = [];
 
+// Función para limpiar tickets antiguos
 const cleanUpOldTickets = () => {
     const today = moment().tz('America/Tegucigalpa').format('YYYY-MM-DD');
     ticketQueue = ticketQueue.filter(ticket => moment(ticket.createdAt).format('YYYY-MM-DD') === today);
 };
 
+// Función para insertar ticket en orden
 const insertTicketInOrder = (newTicket) => {
     let inserted = false;
     for (let i = 0; i < ticketQueue.length; i++) {
@@ -47,10 +70,11 @@ const insertTicketInOrder = (newTicket) => {
     }
 };
 
+// Función para reordenar la cola de tickets
 const reorderTicketQueue = () => {
     const priority1Tickets = ticketQueue.filter(t => t.id_prioridad === 1);
     const otherPriorityTickets = ticketQueue.filter(t => t.id_prioridad !== 1);
-    
+
     let orderedTickets = [];
     let otherPriorityIndex = 0;
 
@@ -70,6 +94,7 @@ const reorderTicketQueue = () => {
     ticketQueue = orderedTickets;
 };
 
+// Ruta para crear tickets
 app.post('/api/tickets', async (req, res) => {
     let { nombre, documento, codigo, id_tipoTramite, id_prioridad, id_estado, createdAt } = req.body;
 
@@ -110,6 +135,7 @@ app.post('/api/tickets', async (req, res) => {
     }
 });
 
+// Ruta para obtener el último ticket
 app.get('/api/last-ticket', async (req, res) => {
     try {
         const { fecha } = req.query;
@@ -139,6 +165,7 @@ app.get('/api/last-ticket', async (req, res) => {
     }
 });
 
+// Ruta para obtener los tickets por trámite
 app.post('/api/tickets-per-process', async (req, res) => {
     const { tramite } = req.body;
 
@@ -182,6 +209,7 @@ app.post('/api/tickets-per-process', async (req, res) => {
     }
 });
 
+// Ruta para actualizar tickets
 app.put('/api/tickets', async (req, res) => {
     const { id, state, asignado } = req.body;
 
@@ -216,7 +244,17 @@ app.put('/api/tickets', async (req, res) => {
     }
 });
 
+// Configuración del servidor HTTPS
+const httpsOptions = {
+    key: fs.readFileSync('./server.key'),  // Ruta al archivo .key
+    cert: fs.readFileSync('./server.cert')  // Ruta al archivo .cert
+};
+
+// Puerto y host
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`INFO:: Servidor corriendo en el puerto --- ${PORT}`);
+const HOST = '10.10.0.65';
+
+// Iniciar el servidor HTTPS
+https.createServer(httpsOptions, app).listen(PORT, HOST, () => {
+    console.log(`INFO:: Servidor HTTPS corriendo en https://${HOST}:${PORT}`);
 });
