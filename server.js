@@ -36,11 +36,11 @@ function formatDateToMySQL(date) {
 }
 
 const dbConfig = {
-    host: 'bvh0w4w4ogz2mcqxgnae-mysql.services.clever-cloud.com',
+    host: 'sql5.freemysqlhosting.net',
     port: '3306',
-    user: 'u8fvjqfnoqh44je4',
-    password: '2o0LQ9IYnJL0PS2DkLck',
-    database: 'bvh0w4w4ogz2mcqxgnae'
+    user: 'sql5738081',
+    password: 'jPmiCu5PYs',
+    database: 'sql5738081'
 };
 
 let ticketQueue = [];
