@@ -36,11 +36,11 @@ function formatDateToMySQL(date) {
 }
 
 const dbConfig = {
-    host: 'sql5.freemysqlhosting.net',
+    host: 'db-turnero.c3qww2cs4kb8.us-east-2.rds.amazonaws.com',
     port: '3306',
-    user: 'sql5738081',
-    password: 'jPmiCu5PYs',
-    database: 'sql5738081'
+    user: 'admin',
+    password: 'Josuepadilla.99',
+    database: 'dbturnero'
 };
 
 let ticketQueue = [];
