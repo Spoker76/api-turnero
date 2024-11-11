@@ -4,15 +4,6 @@ const cors = require('cors');
 const moment = require('moment-timezone');
 const app = express();
 
-//HTTPS
-const https = require('https');
-const fs = require('fs');
-
-const options = {
-    key: fs.readFileSync('./ssl/key.pem'),
-    cert: fs.readFileSync('./ssl/cert.pem'),
-};
-
 app.use(express.json());
 
 app.use(cors({
@@ -210,6 +201,7 @@ app.put('/api/tickets', async (req, res) => {
     }
 });
 
-https.createServer(options, app).listen(443, () => {
-    console.log('Servidor HTTPS ejecutándose');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`INFO:: Servidor corriendo en el puerto --- ${PORT}`);
 });
